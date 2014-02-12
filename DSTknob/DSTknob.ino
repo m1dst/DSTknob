@@ -10,8 +10,7 @@
 
 enum PinAssignments {
   encoderPinA = 3,
-  encoderPinB = 2,
-  fastButtonPin = 7
+  encoderPinB = 2
 };
 
 volatile unsigned int encoderPos = 0;
@@ -20,8 +19,9 @@ unsigned int lastReportedPos = 1;
 boolean A_set = false;
 boolean B_set = false;
 boolean isFastModeEnabled = false;
+int numberOfButtons = 6;
 
-Button fastButton = Button(fastButtonPin, PULLUP);
+Button fastButton = Button(7, PULLUP);
 Button macro1Button = Button(8, PULLUP);
 Button macro2Button = Button(9, PULLUP);
 Button macro3Button = Button(10, PULLUP);
@@ -86,8 +86,6 @@ SUI_DeclareString(saving_eeprom, "Saving to the eeprom...");
 
 SUI::SerialUI mySUI = SUI::SerialUI(device_greeting);
 
-// We'll also define a struct to hold our macros.
-
 // button_macro_maxlen, max string length for the macros stored within the device when a button is pressed:
 #define button_macro_maxlen  100
 
@@ -104,27 +102,14 @@ typedef struct knobInfo {
   char knob_cw_alt[knob_macro_maxlen + 1];
   char knob_ccw_alt[knob_macro_maxlen + 1];
 
-  char button1[button_macro_maxlen + 1];
-  char button2[button_macro_maxlen + 1];
-  char button3[button_macro_maxlen + 1];
-  char button4[button_macro_maxlen + 1];
-  char button5[button_macro_maxlen + 1];
-  char button6[button_macro_maxlen + 1];
+  char buttons[button_macro_maxlen + 1][5];
+
 } 
 knobInfo;
 
-// Just declare a global knobInfo structure for use below, initialized to all-zeros:
 knobInfo myKnob = {
   0};
 
-
-
-/*
-** ********************* setup() *********************** 
- **
- ** The standard Arduino setup() function.  Here we'll
- ** setup serial comm and the menu structure.
- */
 void setup() 
 {
 
@@ -167,104 +152,77 @@ void loop()
     }
 
   }
-  
+
   if(fastButton.uniquePress()){
     isFastModeEnabled = !isFastModeEnabled;
     digitalWrite(ledpin, isFastModeEnabled);
   }
 
   if(macro1Button.uniquePress()){
-    mySUI.println(myKnob.button1);
+    mySUI.println(myKnob.buttons[0]);
   }
+
   if(macro2Button.uniquePress()){
-    mySUI.println(myKnob.button2);
+    mySUI.println(myKnob.buttons[1]);
   }
+
   if(macro3Button.uniquePress()){
-    mySUI.println(myKnob.button3);
+    mySUI.println(myKnob.buttons[2]);
   }
+
   if(macro4Button.uniquePress()){
-    mySUI.println(myKnob.button4);
+    mySUI.println(myKnob.buttons[3]);
   }
+
   if(macro5Button.uniquePress()){
-    mySUI.println(myKnob.button5);
+    mySUI.println(myKnob.buttons[4]);
   }
+
   if(macro6Button.uniquePress()){
-    mySUI.println(myKnob.button6);
+    mySUI.println(myKnob.buttons[5]);
   }
 
 }
 
-
-void set_button1_macro()
+void set_button_macro1()
 {
-  mySUI.showEnterDataPrompt();
-  byte numRead = mySUI.readBytesToEOL(myKnob.button1, button_macro_maxlen);
-  myKnob.button1[numRead] = '\0';
-  save_button1_to_eeprom();
-  mySUI.print("\nBTN1 : ");
-  mySUI.println(myKnob.button1);
-  mySUI.returnOK();
-  mySUI.println();
+  set_button_macro(1);
 }
-void set_button2_macro()
+void set_button_macro2()
 {
-  mySUI.showEnterDataPrompt();
-  byte numRead = mySUI.readBytesToEOL(myKnob.button2, button_macro_maxlen);
-  myKnob.button2[numRead] = '\0';
-  save_button2_to_eeprom();
-  mySUI.print("\nBTN2 : ");
-  mySUI.println(myKnob.button2);
-  mySUI.returnOK();
-  mySUI.println();
+  set_button_macro(2);
 }
-
-void set_button3_macro()
+void set_button_macro3()
 {
-  mySUI.showEnterDataPrompt();
-  byte numRead = mySUI.readBytesToEOL(myKnob.button3, button_macro_maxlen);
-  myKnob.button3[numRead] = '\0';
-  save_button3_to_eeprom();
-  mySUI.print("\nBTN3 : ");
-  mySUI.println(myKnob.button3);
-  mySUI.returnOK();
-  mySUI.println();
+  set_button_macro(3);
+}
+void set_button_macro4()
+{
+  set_button_macro(4);
+}
+void set_button_macro5()
+{
+  set_button_macro(5);
+}
+void set_button_macro6()
+{
+  set_button_macro(6);
 }
 
-void set_button4_macro()
+void set_button_macro(int buttonNumber)
 {
   mySUI.showEnterDataPrompt();
-  byte numRead = mySUI.readBytesToEOL(myKnob.button4, button_macro_maxlen);
-  myKnob.button4[numRead] = '\0';
-  save_button4_to_eeprom();
-  mySUI.print("\nBTN4 : ");
-  mySUI.println(myKnob.button4);
+  byte numRead = mySUI.readBytesToEOL(myKnob.buttons[buttonNumber-1], button_macro_maxlen);
+  myKnob.buttons[buttonNumber-1][numRead] = '\0';
+  save_button_macro_to_eeprom(buttonNumber);
+  mySUI.print("\nBTN");
+  mySUI.print(buttonNumber);
+  mySUI.print(" : ");
+  mySUI.println(myKnob.buttons[buttonNumber]);
   mySUI.returnOK();
   mySUI.println();
 }
 
-void set_button5_macro()
-{
-  mySUI.showEnterDataPrompt();
-  byte numRead = mySUI.readBytesToEOL(myKnob.button5, button_macro_maxlen);
-  myKnob.button5[numRead] = '\0';
-  save_button5_to_eeprom();
-  mySUI.print("\nBTN5 : ");
-  mySUI.println(myKnob.button5);
-  mySUI.returnOK();
-  mySUI.println();
-}
-
-void set_button6_macro()
-{
-  mySUI.showEnterDataPrompt();
-  byte numRead = mySUI.readBytesToEOL(myKnob.button6, button_macro_maxlen);
-  myKnob.button6[numRead] = '\0';
-  save_button6_to_eeprom();
-  mySUI.print("\nBTN6 : ");
-  mySUI.println(myKnob.button6);
-  mySUI.returnOK();
-  mySUI.println();
-}
 
 void set_callsign()
 {
@@ -289,18 +247,14 @@ void set_callsign()
 void show_info()
 {
   mySUI.println("\n\n** Button Configuration **");  
-  mySUI.print("BTN1  : ");
-  mySUI.println(myKnob.button1);  
-  mySUI.print("BTN2  : ");
-  mySUI.println(myKnob.button2);  
-  mySUI.print("BTN3  : ");
-  mySUI.println(myKnob.button3);  
-  mySUI.print("BTN4  : ");
-  mySUI.println(myKnob.button4);  
-  mySUI.print("BTN5  : ");
-  mySUI.println(myKnob.button5);  
-  mySUI.print("BTN6  : ");
-  mySUI.println(myKnob.button6);  
+
+  for (int i = 1; i <= numberOfButtons; i++ )
+  {
+    mySUI.print("BTN");
+    mySUI.print(i);
+    mySUI.print("  : ");
+    mySUI.println(myKnob.buttons[i-1]);
+  }
 
   mySUI.println("\n** Knob Configuration **");  
   mySUI.print("CW   : ");
@@ -341,12 +295,12 @@ void setupMenus()
 
   configMenu->addCommand(config_help_key, showConfigHelp);
   configMenu->addCommand(config_callsign_key, set_callsign, config_callsign_help);
-  configMenu->addCommand(config_button1_key, set_button1_macro, config_button1_help);
-  configMenu->addCommand(config_button2_key, set_button2_macro, config_button2_help);
-  configMenu->addCommand(config_button3_key, set_button3_macro, config_button3_help);
-  configMenu->addCommand(config_button4_key, set_button4_macro, config_button4_help);
-  configMenu->addCommand(config_button5_key, set_button5_macro, config_button5_help);
-  configMenu->addCommand(config_button6_key, set_button6_macro, config_button6_help);
+  configMenu->addCommand(config_button1_key, set_button_macro1, config_button1_help);
+  configMenu->addCommand(config_button2_key, set_button_macro2, config_button2_help);
+  configMenu->addCommand(config_button3_key, set_button_macro3, config_button3_help);
+  configMenu->addCommand(config_button4_key, set_button_macro4, config_button4_help);
+  configMenu->addCommand(config_button5_key, set_button_macro5, config_button5_help);
+  configMenu->addCommand(config_button6_key, set_button_macro6, config_button6_help);
 
   configMenu->addCommand(config_knob_cw_key, set_callsign, config_knobcw_help);
   configMenu->addCommand(config_knob_ccw_key, set_callsign, config_knobccw_help);
@@ -384,29 +338,29 @@ void reset_to_factory_defaults()
   // is to use the K3’s fancy new switch macro facility.  It avoids the need to press 
   // a whole set of buttons in the correct sequence when the DX is calling “up 1” (or whatever)
   // and the adrenalin is flowing fast.
-  strcpy(myKnob.button1, "SWT13;SWT13;UPB4;FT1;DV0;SB1;RT0;XT0;LK1;BW0060;BW$0270;MN111;MP001;MN255;" + '\0');  
+  strcpy(myKnob.buttons[0], "SWT13;SWT13;UPB4;FT1;DV0;SB1;RT0;XT0;LK1;BW0060;BW$0270;MN111;MP001;MN255;" + '\0');  
 
   // Button 2 - Instant CW pileup
   // I have programmed another macro key to do the converse of the “instant split”, enabling me to instantly 
   // start listening ‘up 1’ when I get a CW pileup going and need to split.  In this case, I use the main VFO A 
   // to tune around the pileup, transmitting on a locked VFO B.
-  strcpy(myKnob.button2, "SWT13;SWT13;UP4;FT1;DV0;SB1;RT0;XT0;LK$1;BW0270;BW$0060;MN111;MP002;MN255;" + '\0');  
+  strcpy(myKnob.buttons[1], "SWT13;SWT13;UP4;FT1;DV0;SB1;RT0;XT0;LK$1;BW0270;BW$0060;MN111;MP002;MN255;" + '\0');  
 
   // Button 3 - Unsplit
   // Having used either of the above split macros, I wanted a further macro to reset the K3 quickly to my normal operating setup.
-  strcpy(myKnob.button3, "FT0; LK0; LK$0; SWT13; BW0270; DV1;" + '\0');  
+  strcpy(myKnob.buttons[2], "FT0; LK0; LK$0; SWT13; BW0270; DV1;" + '\0');  
 
   // Button 4 - Sends CW
   // Sends M1DST via CW
-  strcpy(myKnob.button4, "KY M1DST" + '\0');
+  strcpy(myKnob.buttons[3], "KY M1DST" + '\0');
 
   // Button 5 - Sends CW
   // Sends 5NN via CW
-  strcpy(myKnob.button5, "KY 5NN" + '\0');
+  strcpy(myKnob.buttons[4], "KY 5NN" + '\0');
 
   // Button 6 - Toggle headphones / speakers
   // Since the Speaker+phone menu entry only has two states this will toggle speakers on/off.
-  strcpy(myKnob.button6, "MN097;UP;MN255;" + '\0');
+  strcpy(myKnob.buttons[5], "MN097;UP;MN255;" + '\0');
 }
 
 void save_callsign_to_eeprom()
@@ -414,39 +368,10 @@ void save_callsign_to_eeprom()
   EepromUtil::eeprom_write_string(0 * knob_macro_maxlen, myKnob.callsign);
 }
 
-void save_button1_to_eeprom()
+void save_button_macro_to_eeprom(int buttonNumber)
 {
-  EepromUtil::eeprom_write_string((4 * knob_macro_maxlen) + (1 * button_macro_maxlen), myKnob.button1);
+  EepromUtil::eeprom_write_string((4 * knob_macro_maxlen) + ((buttonNumber - 1) * button_macro_maxlen), myKnob.buttons[buttonNumber - 1]);
 }
-
-void save_button2_to_eeprom()
-{
-  EepromUtil::eeprom_write_string((4 * knob_macro_maxlen) + (2 * button_macro_maxlen), myKnob.button2);
-}
-
-void save_button3_to_eeprom()
-{
-  EepromUtil::eeprom_write_string((4 * knob_macro_maxlen) + (3 * button_macro_maxlen), myKnob.button3);
-}
-
-
-void save_button4_to_eeprom()
-{
-  EepromUtil::eeprom_write_string((4 * knob_macro_maxlen) + (4 * button_macro_maxlen), myKnob.button4);
-}
-
-
-void save_button5_to_eeprom()
-{
-  EepromUtil::eeprom_write_string((4 * knob_macro_maxlen) + (5 * button_macro_maxlen), myKnob.button5);
-}
-
-
-void save_button6_to_eeprom()
-{
-  EepromUtil::eeprom_write_string((4 * knob_macro_maxlen) + (6 * button_macro_maxlen), myKnob.button6);
-}
-
 
 
 void save_to_eeprom()
@@ -460,13 +385,9 @@ void save_to_eeprom()
   EepromUtil::eeprom_write_string(3 * knob_macro_maxlen, myKnob.knob_cw_alt);
   EepromUtil::eeprom_write_string(4 * knob_macro_maxlen, myKnob.knob_ccw_alt);
 
-  save_button1_to_eeprom();
-  save_button2_to_eeprom();
-  save_button3_to_eeprom();
-  save_button4_to_eeprom();
-  save_button5_to_eeprom();
-  save_button6_to_eeprom();
-
+  for (int i = 1; i <= numberOfButtons; i++) { 
+    save_button_macro_to_eeprom(i);
+  }
 }
 
 void load_from_eeprom()
@@ -478,12 +399,9 @@ void load_from_eeprom()
   EepromUtil::eeprom_read_string(3 * knob_macro_maxlen, myKnob.knob_cw_alt, knob_macro_maxlen + 1);
   EepromUtil::eeprom_read_string(4 * knob_macro_maxlen, myKnob.knob_ccw_alt, knob_macro_maxlen + 1);
 
-  EepromUtil::eeprom_read_string((4 * knob_macro_maxlen) + (1 * button_macro_maxlen), myKnob.button1, button_macro_maxlen + 1);
-  EepromUtil::eeprom_read_string((4 * knob_macro_maxlen) + (2 * button_macro_maxlen), myKnob.button2, button_macro_maxlen + 1);
-  EepromUtil::eeprom_read_string((4 * knob_macro_maxlen) + (3 * button_macro_maxlen), myKnob.button3, button_macro_maxlen + 1);
-  EepromUtil::eeprom_read_string((4 * knob_macro_maxlen) + (4 * button_macro_maxlen), myKnob.button4, button_macro_maxlen + 1);
-  EepromUtil::eeprom_read_string((4 * knob_macro_maxlen) + (5 * button_macro_maxlen), myKnob.button5, button_macro_maxlen + 1);
-  EepromUtil::eeprom_read_string((4 * knob_macro_maxlen) + (6 * button_macro_maxlen), myKnob.button6, button_macro_maxlen + 1);
+  for (int i = 1; i <= numberOfButtons; i++) { 
+    EepromUtil::eeprom_read_string((4 * knob_macro_maxlen) + (i * button_macro_maxlen), myKnob.buttons[i-1], button_macro_maxlen + 1);
+  }
 
 }
 
@@ -515,15 +433,23 @@ void doEncoderB(){
 
   if(A_set == B_set)
   {
-    mySUI.println((isFastModeEnabled)? myKnob.knob_cw_alt : myKnob.knob_cw);
+    mySUI.println((isFastModeEnabled) ? myKnob.knob_cw_alt : myKnob.knob_cw);
   }
   else
   {
-    mySUI.println((isFastModeEnabled)? myKnob.knob_ccw_alt : myKnob.knob_ccw);
+    mySUI.println((isFastModeEnabled) ? myKnob.knob_ccw_alt : myKnob.knob_ccw);
   }
 
   encoderPos += (A_set == B_set) ? +1 : -1;
 }
+
+
+
+
+
+
+
+
 
 
 
